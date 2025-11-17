@@ -1,0 +1,57 @@
+---
+title: "Preproceso de datos"
+author: "Marta Requejo"
+date: "2025-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r libreria-xlsx, message=FALSE, warning=FALSE}
+# Librerías necesarias
+if (!require("openxlsx")) install.packages("openxlsx")
+library(openxlsx)
+
+```
+```{r cargar-diccionario, message=FALSE, warning=FALSE}
+# Carga el diccionario
+
+dicc <- read.xlsx(
+  xlsxFile = "Data Dictionary.xlsx",
+  sheet = 1,
+  startRow = 2,
+  fillMergedCells = TRUE,
+  colNames = TRUE
+)
+
+
+names(dicc)
+
+```
+```{r tabla1, message=FALSE, warning=FALSE}
+# TABLA 1: ODS, código, descripción
+tabla1 <- dicc[, c("Associated.SDG.GOAL", "Code", "Description")]
+
+# TABLA 2: ODS, descripción
+tabla2 <- dicc[, c("Associated.SDG.GOAL", "Description")]
+
+# Extraer el número del Goal usando expresiones regulares
+# Esto busca los dígitos después de "Goal " al inicio de la cadena
+tabla1$Goal_num <- as.numeric(sub("Goal (\\d+).*", "\\1", tabla1$Associated.SDG.GOAL))
+tabla2$Goal_num <- as.numeric(sub("Goal (\\d+).*", "\\1", tabla2$Associated.SDG.GOAL))
+
+# Ordenar por el número del Goal
+tabla1 <- tabla1[order(tabla1$Goal_num), ]
+tabla2 <- tabla2[order(tabla2$Goal_num), ]
+
+# Eliminar la columna auxiliar si quieres
+tabla1$Goal_num <- NULL
+tabla2$Goal_num <- NULL
+
+# Mostrar primeras filas
+head(tabla1, 10)
+head(tabla2, 10)
+
+
+```

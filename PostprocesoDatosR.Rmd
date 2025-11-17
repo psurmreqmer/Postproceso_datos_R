@@ -1,0 +1,89 @@
+---
+title: "PostprocesoDatosR"
+author: "Marta Requejo"
+date: "2025-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Librerias**
+```{r libreria-xlsx, message=FALSE, warning=FALSE}
+# Librerías necesarias
+if (!require("openxlsx")) install.packages("openxlsx")
+library(openxlsx)
+if (!require("readr")) install.packages("readr")
+library(readr)
+```
+**Carga los datos del xlsx y el csv**
+```{r cargar-datos, message=FALSE, warning=FALSE}
+
+# Carga el xlsx
+datos_xlsx <- read.xlsx(
+  xlsxFile = "Data Dictionary.xlsx",
+  sheet = 1,
+  startRow = 2,
+  fillMergedCells = TRUE,
+  colNames = TRUE
+)
+#Carga el scv
+datos_csv <- read_csv("WorldSustainabilityDataset.csv")
+
+```
+**Procesa los datos del xlsx para organizar datos en distintas tablas**
+```{r procesa_xlsx, message=FALSE, warning=FALSE}
+
+# TABLA 1: ODS, código, descripción
+tabla1 <- datos_xlsx[, c("Associated.SDG.GOAL", "Code", "Description")]
+
+# TABLA 2: ODS, descripción
+tabla2 <- datos_xlsx[, c("Associated.SDG.GOAL", "Description")]
+
+# Crea una columna auxiliar para ordenar mediante regex
+tabla1$Goal_num <- as.numeric(sub("Goal (\\d+).*", "\\1", tabla1$Associated.SDG.GOAL))
+tabla2$Goal_num <- as.numeric(sub("Goal (\\d+).*", "\\1", tabla2$Associated.SDG.GOAL))
+
+tabla1 <- tabla1[order(tabla1$Goal_num), ]
+tabla2 <- tabla2[order(tabla2$Goal_num), ]
+
+# Eliminar la columna auxiliar
+tabla1$Goal_num <- NULL
+tabla2$Goal_num <- NULL
+names(datos_csv)
+
+```
+**Preparamos para procesar los datos del csv**
+```{r procesa_csv, message=FALSE, warning=FALSE}
+# Renombrar columnas clave
+names(datos_csv)[names(datos_csv) == "Country Name"] <- "Country"
+names(datos_csv)[names(datos_csv) == "Country Code"] <- "CountryCode"
+names(datos_csv)[names(datos_csv) == "Regime Type (RoW Measure Definition)"] <- "Regime"
+names(datos_csv)[names(datos_csv) == "Income Classification (World Bank Definition)"] <- "Income"
+names(datos_csv)[names(datos_csv) == "World Regions (UN SDG Definition)"] <- "Region"
+
+#Tomar solo los códigos de las columnas
+names(datos_csv) <- sapply(names(datos_csv), function(x) {
+  if (grepl(" - ", x)) {
+    parts <- unlist(strsplit(x, " - "))
+    if(length(parts) >= 2) {
+      # Extrae la segunda parte como código (si hay 2 o más guiones)
+      parts[2]
+    } else {
+      # Si hay un solo guion, toma la última parte
+      tail(parts, 1)
+    }
+  } else {
+    # Si no hay guion, deja el nombre tal cual
+    x
+  }
+})
+
+
+```
+**Nuevos nombres de las columnas**
+```{r nombres_col_csv, message=FALSE, warning=FALSE}
+#names(datos_csv)
+names(datos_csv)
+```
