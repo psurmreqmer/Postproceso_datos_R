@@ -12,10 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 **Librerias**
 ```{r libreria-xlsx, message=FALSE, warning=FALSE}
 # Librerías necesarias
-if (!require("openxlsx")) install.packages("openxlsx")
 library(openxlsx)
-if (!require("readr")) install.packages("readr")
 library(readr)
+library(dplyr)
 ```
 **Carga los datos del xlsx y el csv**
 ```{r cargar-datos, message=FALSE, warning=FALSE}
@@ -28,8 +27,8 @@ datos_xlsx <- read.xlsx(
   fillMergedCells = TRUE,
   colNames = TRUE
 )
-#Carga el scv
-datos_csv <- read_csv("WorldSustainabilityDataset.csv")
+#Carga el scv, ademaś sustituye los valores vacíos por NA
+datos_csv <- read_csv("WorldSustainabilityDataset.csv", na = c("NA", ""))
 
 ```
 **Procesa los datos del xlsx para organizar datos en distintas tablas**
@@ -80,10 +79,13 @@ names(datos_csv) <- sapply(names(datos_csv), function(x) {
   }
 })
 
-
 ```
 **Nuevos nombres de las columnas**
 ```{r nombres_col_csv, message=FALSE, warning=FALSE}
 #names(datos_csv)
 names(datos_csv)
+```
+**Analizamos los tipos de datos del CSV para ver si hay errores**
+```{r prueba, message=FALSE, warning=FALSE}
+str(datos_csv)
 ```
